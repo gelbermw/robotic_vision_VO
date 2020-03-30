@@ -2,6 +2,7 @@ import cv2
 import odataset as data
 import functions as calc
 import numpy as np
+import transform
 import string
 import sys
 import warnings
@@ -13,7 +14,6 @@ img_type = int(input("Enter 1 for single image or 2 to compare images: "))
 data_file = input("Select which type of data to view:\n\tT for Translation\n\tP for Pitch\n\tY for Yaw\n\tV for Video\n")
 which_data = data_file.lower()
 which_data += "_data"
-print(which_data)
 print("Starting frame assumed as first set of data")
 frame_1 = 0
 frame_2 = 0
@@ -29,6 +29,8 @@ img2_points = []
 alpha_arr = []
 beta_arr = []
 gamma_arr = []
+detected_feature_loc1 = []
+detected_feature_loc2 = []
 
 
 data_dirs = {'t_data': [('./data/Translation/Y1/', 'trans_1'),
@@ -89,10 +91,10 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
                 cv2.imshow(frame_text + " 2", second_img)
             else:
                 compare_desc = cv2.BFMatcher(cv2.NORM_L1, crossCheck=False)
-                match = compare_desc.match(desc1,desc2)
+                match = compare_desc.match(desc1, desc2)
                 match = sorted(match, key=lambda x:x.distance)
                 i = 0
-                for points in match[:NUM_FEATURES]: # {
+                for points in match[:NUM_FEATURES]:  # {
                     # get the x and y pixel locations the features from the matcher
                     point_image1 = points.queryIdx
                     point_image2 = points.trainIdx
@@ -118,9 +120,11 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
                     # print("number of image 2 points", len(img2_points) / 2)    # debugging lines
 
                     # get the xvect, yvect, and z distance of each point of interest based on the pixel xy location
-                    # and round to 4 decimal places.
-                    feature_loc1 = np.round(frame_1.get_position(img1_points[i*2], img1_points[i*2+1]),4)
-                    feature_loc2 = np.round(frame_2.get_position(img2_points[i*2], img2_points[i*2+1]),4)
+                    # and round to 4 decimal places.  final full array of all matching points
+                    feature_loc1 = np.round(frame_1.get_position(img1_points[i*2], img1_points[i*2+1]), 4)
+                    feature_loc2 = np.round(frame_2.get_position(img2_points[i*2], img2_points[i*2+1]), 4)
+                    detected_feature_loc1 = np.append(detected_feature_loc1, (feature_loc1[1], feature_loc1[2], feature_loc1[0]))
+                    detected_feature_loc2 = np.append(detected_feature_loc2, (feature_loc2[1], feature_loc2[2], feature_loc2[0]))
                     # print(feature_loc1, " | ", feature_loc2)    #debugging lines
 
                     # calculate distance between camera and each point of interest
@@ -130,6 +134,7 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
                                                             feature_loc1[0], feature_loc1[1], feature_loc1[2])
                     # print(dist_cam_to_1, " | ", dist_cam_to_2, " | ", dist_1_to_2)    # debugging lines
 
+                    # calculate the individual angles from trig
                     alpha = np.rad2deg(calc.camera_angle(dist_1_to_2, dist_cam_to_2, dist_cam_to_1))
                     beta = np.rad2deg(calc.point1_angle(dist_1_to_2, dist_cam_to_2, dist_cam_to_1))
                     gamma = np.rad2deg(calc.point2_angle(dist_1_to_2, dist_cam_to_2, dist_cam_to_1))
@@ -154,11 +159,23 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
                 #    print(single_avg)
             if cv2.waitKey(30) & 0xFF == ord('q'):
                 break
+        # working with creating averages
         alpha_avg = np.average(alpha_arr)
         alpha_err = abs(alpha_avg - (frame_num * 3))
         print(alpha_avg, " | ", alpha_err, " | ", np.std(alpha_arr))
 
-    else: #only looking at one image for testing purposes
+        # reshape vector into 2D array then take transpose
+        detected_feature_loc1 = np.reshape(detected_feature_loc1, (-1, 3))
+        detected_feature_loc1 = np.round(calc.transpose_array(detected_feature_loc1), 4)
+        detected_feature_loc2 = np.reshape(detected_feature_loc2, (-1, 3))
+        detected_feature_loc2 = np.round(calc.transpose_array(detected_feature_loc2), 4)
+
+        rotate, translate = transform.rigid_transform_3D(detected_feature_loc1, detected_feature_loc2)
+        print("rotation", rotate)
+        print("translation", translate)
+
+
+    else: # only looking at one image for testing purposes
 
         # ####image display
         img = np.zeros_like(data_set_1.data[0].amplitude)

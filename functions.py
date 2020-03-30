@@ -32,3 +32,7 @@ def point2_angle(a, b, c):    # angle beta based on triangle
     denom = 2 * a * b
     gamma = math.acos(numer / denom)
     return gamma
+
+
+def transpose_array(arr):
+    return [[arr[j][i] for j in range(len(arr))] for i in range(len(arr[0]))]
