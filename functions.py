@@ -36,3 +36,37 @@ def point2_angle(a, b, c):    # angle beta based on triangle
 
 def transpose_array(arr):
     return [[arr[j][i] for j in range(len(arr))] for i in range(len(arr[0]))]
+
+
+def p_r_y(r):
+    r = np.asarray(r)
+    pitch = 0 # beta
+    roll = 0 # gamma
+    yaw = 0 # alpha
+    print(r)
+    pitch = math.asin(-1*r[2][0])
+    yaw = math.acos((r[0][0])/(math.cos(pitch)))
+    roll = math.acos((r[2][2])/(math.cos(pitch)))
+    pitch = np.rad2deg(pitch)
+    yaw = np.rad2deg(yaw)
+    roll = np.rad2deg(roll)
+    return pitch, roll, yaw     # return degrees
+
+
+def rotationMatrixToEulerAngles(R):
+    # assert (isRotationMatrix(R))
+
+    sy = math.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
+
+    singular = sy < 1e-6
+
+    if not singular:
+        x = math.atan2(R[2, 1], R[2, 2])
+        y = math.atan2(-R[2, 0], sy)
+        z = math.atan2(R[1, 0], R[0, 0])
+    else:
+        x = math.atan2(-R[1, 2], R[1, 1])
+        y = math.atan2(-R[2, 0], sy)
+        z = 0
+
+    return np.array([x, y, z])

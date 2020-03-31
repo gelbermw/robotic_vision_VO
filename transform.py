@@ -29,13 +29,16 @@ def rigid_transform_3D(A, B):
     # numpy arrays instead of numpy matrices)
     centroid_A = centroid_A.reshape(-1, 1)
     centroid_B = centroid_B.reshape(-1, 1)
+    # numr, numc = centroid_A.shape
+    # print(numr)
+    # print(numc)
 
     # subtract mean
     Am = A - tile(centroid_A, (1, num_cols))
     Bm = B - tile(centroid_B, (1, num_cols))
 
     H = Am * transpose(Bm)
-    # H = Am.dot(transpose(Bm))
+    # H = dot(Am, transpose(Bm))
     # sanity check
     #if linalg.matrix_rank(H) < 3:
     #    raise ValueError("rank of H = {}, expecting 3".format(linalg.matrix_rank(H)))
@@ -49,6 +52,13 @@ def rigid_transform_3D(A, B):
         print("det(R) < R, reflection detected!, correcting for it ...\n");
         Vt[2,:] *= -1
         R = Vt.T * U.T
+
+    # print("R: ", R)
+    # print("cen_A", centroid_A)
+    # print("cen_B", centroid_B)
+
+    # middle_step = -R*centroid_A
+    # print("-R*centroid_A: ",middle_step)
 
     t = -R*centroid_A + centroid_B
 

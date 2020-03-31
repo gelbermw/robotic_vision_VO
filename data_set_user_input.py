@@ -3,12 +3,14 @@ import odataset as data
 import functions as calc
 import numpy as np
 import transform
+from scipy.ndimage.filters import gaussian_filter
 import string
 import sys
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-NUM_FEATURES = 5
+NUM_FEATURES = 10
+sigma_val = 1.6
 
 img_type = int(input("Enter 1 for single image or 2 to compare images: "))
 data_file = input("Select which type of data to view:\n\tT for Translation\n\tP for Pitch\n\tY for Yaw\n\tV for Video\n")
@@ -62,7 +64,17 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
         #while True:
             frame_1 = data_set_1.next_entry()
             frame_2 = data_set_2.next_entry()
-
+            # if data_file == 'P' or data_file == 'p'
+            frame_1.amplitude[frame_1.amplitude == 65533] = 0
+            frame_2.amplitude[frame_2.amplitude == 65533] = 0
+            frame_1.amplitude = gaussian_filter(frame_1.amplitude, sigma=sigma_val)
+            frame_1.x = gaussian_filter(frame_1.x, sigma=sigma_val)
+            frame_1.y = gaussian_filter(frame_1.y, sigma=sigma_val)
+            frame_1.z = gaussian_filter(frame_1.z, sigma=sigma_val)
+            frame_2.amplitude = gaussian_filter(frame_2.amplitude, sigma=sigma_val)
+            frame_2.x = gaussian_filter(frame_2.x, sigma=sigma_val)
+            frame_2.y = gaussian_filter(frame_2.y, sigma=sigma_val)
+            frame_2.z = gaussian_filter(frame_2.z, sigma=sigma_val)
             # amp = frame.get_combined_image()
             first_img = frame_1.get_amplitude_image()
             # single_avg = np.average(img_1)
@@ -90,11 +102,12 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
                 cv2.imshow(frame_text + " 1", first_img)
                 cv2.imshow(frame_text + " 2", second_img)
             else:
-                compare_desc = cv2.BFMatcher(cv2.NORM_L1, crossCheck=False)
+                compare_desc = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
                 match = compare_desc.match(desc1, desc2)
                 match = sorted(match, key=lambda x:x.distance)
                 i = 0
-                for points in match[:NUM_FEATURES]:  # {
+                # for points in match[:NUM_FEATURES]:  # {
+                for points in match:  # {
                     # get the x and y pixel locations the features from the matcher
                     point_image1 = points.queryIdx
                     point_image2 = points.trainIdx
@@ -109,11 +122,15 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
                     # img1_points = np.append([(x1,y1)])
                     # img2_points = np.append([(x2,y2)])
 
+
                     img1_points = np.int_(np.round(img1_points, decimals=0, out=None))
                     img2_points = np.int_(np.round(img2_points, decimals=0, out=None))
 
+                    # testing RANSAC
+
+
                     # print("point 1: ", img1_points, " | point 2:", img2_points)    # debugging lines
-                    print("run # ", i)
+                    # print("run # ", i)
 
                     # num1 = len(img1_points) / 2    #debugging lines
                     # print("number of image 1 points", len(img1_points) / 2)    # debugging lines
@@ -141,7 +158,7 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
                     alpha_arr = np.append(alpha_arr, alpha)
                     beta_arr = np.append(beta_arr, beta)
                     gamma_arr = np.append(gamma_arr, gamma)
-                    print(alpha, " | ", beta - 90, " | ", gamma - 90)    # debugging lines
+                    # print(alpha, " | ", beta, " | ", gamma)    # debugging lines
 
                     i += 1
                 # }
@@ -162,20 +179,38 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
         # working with creating averages
         alpha_avg = np.average(alpha_arr)
         alpha_err = abs(alpha_avg - (frame_num * 3))
-        print(alpha_avg, " | ", alpha_err, " | ", np.std(alpha_arr))
+        # print(alpha_avg, " | ", alpha_err, " | ", np.std(alpha_arr))
+
 
         # reshape vector into 2D array then take transpose
         detected_feature_loc1 = np.reshape(detected_feature_loc1, (-1, 3))
-        detected_feature_loc1 = np.round(calc.transpose_array(detected_feature_loc1), 4)
         detected_feature_loc2 = np.reshape(detected_feature_loc2, (-1, 3))
-        detected_feature_loc2 = np.round(calc.transpose_array(detected_feature_loc2), 4)
 
-        rotate, translate = transform.rigid_transform_3D(detected_feature_loc1, detected_feature_loc2)
+        H, status = cv2.findHomography(detected_feature_loc1, detected_feature_loc2, cv2.RANSAC, ransacReprojThreshold=0.001)
+        np.set_printoptions(threshold=sys.maxsize)
+        # print(H)
+        # print(status)
+        # print(status.shape, detected_feature_loc1.shape)
+        # print(detected_feature_loc1)
+        detected_feature_loc1_new = []
+        detected_feature_loc2_new = []
+        for i in range(len(detected_feature_loc1)):
+            if status[i] == 1:
+                detected_feature_loc1_new.append(detected_feature_loc1[i])
+                detected_feature_loc2_new.append(detected_feature_loc2[i])
+        detected_feature_loc1_new = np.round(calc.transpose_array(detected_feature_loc1_new), 4)
+        detected_feature_loc2_new = np.round(calc.transpose_array(detected_feature_loc2_new), 4)
+
+        rotate, translate = transform.rigid_transform_3D(np.asmatrix(detected_feature_loc1_new), np.asmatrix(detected_feature_loc2_new))
+        pyr = calc.rotationMatrixToEulerAngles(rotate)
+        # pitch, roll, yaw = calc.p_r_y(rotate)
         print("rotation", rotate)
+        print("pitch (degrees): ", np.rad2deg(pyr[0]))
+        print("roll (degrees): ", np.rad2deg(pyr[2]))
+        print("yaw (degrees): ", np.rad2deg(pyr[1]))
         print("translation", translate)
 
-
-    else: # only looking at one image for testing purposes
+    else:  # only looking at one image for testing purposes
 
         # ####image display
         img = np.zeros_like(data_set_1.data[0].amplitude)
