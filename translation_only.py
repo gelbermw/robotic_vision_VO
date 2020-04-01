@@ -1,10 +1,11 @@
 import cv2
-import odataset as data
+import odataset as dat
 import functions as calc
 import numpy as np
 import transform as tr
 from scipy.ndimage.filters import gaussian_filter
-import string
+from skimage import data, transform
+# from skimage import
 import sys
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -12,18 +13,17 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 NUM_FEATURES = 4
 sigma_val = 1.0
 
-img_type = int(input("Enter 1 for single image or 2 to compare images: "))
-data_file = input("Select which type of data to view:\n\tT for Translation\n\tP for Pitch\n\tY for Yaw\n\tV for Video\n")
+img_type = 2
+data_file = 'T'
 which_data = data_file.lower()
 which_data += "_data"
-print("Starting frame assumed as first set of data")
+# print("Starting frame assumed as first set of data")
 frame_1 = 0
 frame_2 = 0
 if img_type == 2:
     frame_2 = int(input("Select a number (2, 3, or 4) for what data to be compared: "))
     frame_2 -= 1
     frame_num = frame_2
-avg = 0
 
 # initialize list of matching point pairs
 img1_points = []
@@ -56,16 +56,11 @@ data_dirs = {'t_data': [('./data/Translation/Y1/', 'trans_1'),
              'v_data': [('./data/RV_Data2/', 'vid')]}
 
 if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
-    data_set_1 = data.Dataset(data_dirs[which_data][frame_1])
-    if data_file == 'T' or data_file == 't':
-        frame_text = "Translation Image"
-    elif data_file == 'P' or data_file == 'p':
-        frame_text = "Pitch Image"
-    elif data_file == 'Y' or data_file == 'y':
-        frame_text = "Yaw Image"
+    data_set_1 = dat.Dataset(data_dirs[which_data][frame_1])
+    frame_text = "Translation Image"
 
     if frame_2 != 0:
-        data_set_2 = data.Dataset(data_dirs[which_data][frame_2])
+        data_set_2 = dat.Dataset(data_dirs[which_data][frame_2])
         for i in range(len(data_set_1.data)):
         #while True:
             frame_1 = data_set_1.next_entry()
@@ -151,20 +146,9 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
             detected_feature_loc1 = np.reshape(detected_feature_loc1, (-1, 3))
             detected_feature_loc2 = np.reshape(detected_feature_loc2, (-1, 3))
 
-            # if data_file == 'P' or data_file == 'p':
-            #     thresh = 0.0001
-            # elif data_file == 'Y' or data_file == 'y':
-            #     thresh = 0.001
-            # else:
-            #     thresh = 0.001
-
             H, status = cv2.findHomography(detected_feature_loc1, detected_feature_loc2, cv2.RANSAC,
                                            ransacReprojThreshold=0.0001)
-            # np.set_printoptions(threshold=sys.maxsize)
             # print(H)
-            # print(status)
-            # print(status.shape, detected_feature_loc1.shape)
-            # print(detected_feature_loc1)
             detected_feature_loc1_new = []
             detected_feature_loc2_new = []
             for j in range(len(detected_feature_loc1)):
@@ -180,7 +164,48 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
             detected_feature_loc1_new = []
             detected_feature_loc2_new = []
 
-            # pyr = []
+            # ####trying new thing for translation
+            # new_H = np.transpose(translate) * rotate * translate
+            # # S = []
+            # x_scale = 1
+            # y_scale = 1
+            # x_skew = 0.00001
+            # y_skew = 0.00001
+            # S = [[x_scale, 0, 0], [0, y_scale, 0], [x_skew, y_skew, 1]]
+            # S = np.asarray(S)
+            # r, c = first_img.shape
+            # T = [[1, 0, -c/2], [0, 1, -r/2], [0, 0, 1]]
+            # T = np.array(T)
+            # img1_new = cv2.warpPerspective(first_img, H, (144, 132))
+            # img1_rot = cv2.warpPerspective(img1_new, S.dot(np.linalg.inv(T).dot(new_H).dot(translate)), (144, 132))
+            # cv2.imshow("skewed", img1_rot)
+            # img1_rotate = transform.homography(first_img, new_H)
+
+            # k = first_img
+            # k_inv = np.linalg.inv(k)
+            # Hi = k.dot(rotate)
+            # Hii = k_inv.dot(H)
+            # H1 = Hi.dot(Hii)
+            # # print ("H1 = ", H1)
+            # im_out = cv2.warpPerspective(first_img, H1, (first_img.shape[1], first_img.shape[0]))
+            # cv2.imshow("skewed", im_out)
+            # test = [[0, 0, 0],[0, 0, 0],[0, 0, 0]]
+            # cam_rotate, cam_translate = tr.rigid_transform_3D(rotate, np.asmatrix(test))
+            # new_T = cam_translate * np.transpose(translate)
+            # print(new_T)
+
+            # row, col, ch = first_img.shape
+            # m = cv2.getAffineTransform(img1_points, img2_points)
+            # dst = cv2.warpAffine(first_img, m, (col, row))
+            # cv2.imshow("skewed", dst)
+            new_rot = rotate[0:5]
+            (h, w) = first_img.shape
+            center = (w/2, h/2)
+            skew_img = cv2.warpAffine(first_img, new_rot, (w, h))
+            cv2.imshow("skew", skew_img)
+
+            # print(S[0][0])
+            # #####end of new thing
             pyr = calc.rotationMatrixToEulerAngles(rotate)
 
             all_pitch = np.append(all_pitch, pyr[0])
@@ -190,136 +215,13 @@ if frame_1 == 0 and (data_file != 'V' and data_file != 'v'):
             all_x = np.append(all_x, translate[0])
             all_y = np.append(all_y, translate[1])
             all_z = np.append(all_z, translate[2])
-            # pitch, roll, yaw = calc.p_r_y(rotate)
-
-            # print("rotation", rotate)
-            # print("pitch (degrees): ", np.rad2deg(pyr[0]))
-            # print("roll (degrees): ", np.rad2deg(pyr[2]))
-            # print("yaw (degrees): ", np.rad2deg(pyr[1]))
-            # print("translation", translate)
 
             if cv2.waitKey(30) & 0xFF == ord('q'):
                 break
 
-        print("pitch average (degrees): ", np.rad2deg(np.mean(all_pitch)))
-        print("roll average (degrees): ", np.rad2deg(np.mean(all_roll)))
-        print("yaw average (degrees): ", np.rad2deg(np.mean(all_yaw)))
-
-        # reshape vector into 2D array then take transpose
-        detected_feature_loc1 = np.reshape(detected_feature_loc1, (-1, 3))
-        detected_feature_loc2 = np.reshape(detected_feature_loc2, (-1, 3))
-        # reprojection threshold 0.001 for yaw
-        # reprojection threshold 0.0001 for pitch
-        H, status = cv2.findHomography(detected_feature_loc1, detected_feature_loc2, cv2.RANSAC, ransacReprojThreshold=0.0001)
-        np.set_printoptions(threshold=sys.maxsize)
-        # print(H)
-        # print(status)
-        # print(status.shape, detected_feature_loc1.shape)
-        # print(detected_feature_loc1)
-        detected_feature_loc1_new = []
-        detected_feature_loc2_new = []
-        for k in range(len(detected_feature_loc1)):
-            if status[k] == 1:
-                detected_feature_loc1_new.append(detected_feature_loc1[k])
-                detected_feature_loc2_new.append(detected_feature_loc2[k])
-        detected_feature_loc1_new = np.round(calc.transpose_array(detected_feature_loc1_new), 4)
-        detected_feature_loc2_new = np.round(calc.transpose_array(detected_feature_loc2_new), 4)
-
-        rotate, translate = tr.rigid_transform_3D(np.asmatrix(detected_feature_loc1_new), np.asmatrix(detected_feature_loc2_new))
-        pyr = calc.rotationMatrixToEulerAngles(rotate)
-        # pitch, roll, yaw = calc.p_r_y(rotate)
-
-        # print("rotation", rotate)
-        print("pitch (degrees): ", np.rad2deg(pyr[0]))
-        print("roll (degrees): ", np.rad2deg(pyr[2]))
-        print("yaw (degrees): ", np.rad2deg(pyr[1]))
-        # print("translation", translate)
-
-    else:  # only looking at one image for testing purposes
-
-        # ####image display
-        img = np.zeros_like(data_set_1.data[0].amplitude)
-        img = np.float32(img)
-        if avg == 1:
-            frame_text += ": averaged"
-            i = 0
-            for frame in data_set_1.data:
-                # ###normal method
-                # img = img + frame.get_amplitude_image()
-
-                # ###filtering method
-                new = frame.get_amplitude_image()
-                single_avg = np.average(new)
-                # print("image#", i, "| ", single_avg)
-                if single_avg > 0.107:
-                    img = img + new
-                    i += 1
-                    print("image#", i, "| ", single_avg)
-                else:
-                    data_set_1.next_entry()
-            # ####normal method
-            # img = img / len(data_set.data)
-
-            # ###filtered method
-            img = img / i
-            img = np.uint8(img * 255)
-            # np.set_printoptions(threshold=sys.maxsize)
-            # print(img)
-            # print("max of average array: ", np.amax(img))
-
-            # sift test
-            sift_img = cv2.xfeatures2d.SIFT_create()
-            kp = sift_img.detect(img, None)
-            img = cv2.drawKeypoints(img, kp, None)
-            loc_xy = [x.pt for x in kp]
-            loc_xy = np.round(loc_xy,decimals=0,out=None)
-            print(loc_xy)
-            height, width = img.shape[:2]
-            cv2.namedWindow(frame_text, cv2.WINDOW_NORMAL)
-            cv2.resizeWindow(frame_text, width, height)
-            cv2.imshow(frame_text, img)
-
-
-            # #confidence adjustment
-            # frame_text += " + conf"
-            # for frame in data_set.data:
-                # con = frame.get_confidence_image()
-
-            cv2.waitKey(0)
-
-        else:
-            while True:
-                frame = data_set_1.next_entry()
-                # amp = frame.get_combined_image()
-                img = frame.get_amplitude_image()
-                single_avg = np.average(img)
-                img = np.uint8(img * 255)
-
-                # sift test
-                sift_img = cv2.xfeatures2d.SIFT_create()
-                kp = sift_img.detect(img, None)
-                img = cv2.drawKeypoints(img, kp, None)
-                cv2.imshow(frame_text, img)
-                loc_xy = [x.pt for x in kp]
-                if len(loc_xy) > 10:
-                    print(single_avg)
-                if cv2.waitKey(30) & 0xFF == ord('q'):
-                    break
-
-elif frame_1 == 0 and (data_file == 'V' or data_file == 'v'):
-    data_set = data.Dataset(data_dirs[which_data][frame_1])
-    frame_text = "Video Data"
-    while True:
-        frame = data_set.next_entry()
-        # amp = frame.get_combined_image()
-        amp = frame.get_amplitude_image()
-        amp = np.uint8(amp*255)
-
-        # sift test
-        sift_img = cv2.xfeatures2d.SIFT_create()
-        kp = sift_img.detect(amp, None)
-        amp = cv2.drawKeypoints(amp, kp, None)
-
-        cv2.imshow(frame_text, amp)
-        if cv2.waitKey(30) & 0xFF == ord('q'):
-            break
+        # print("pitch average (degrees): ", np.rad2deg(np.mean(all_pitch)))
+        # print("roll average (degrees): ", np.rad2deg(np.mean(all_roll)))
+        # print("yaw average (degrees): ", np.rad2deg(np.mean(all_yaw)))
+        print("x mean (millimeters): ", np.mean(all_x*1000))
+        print("y mean (millimeters): ", np.mean(all_y*1000))
+        print("z mean (millimeters): ", np.mean(all_z*1000))

@@ -49,7 +49,7 @@ def rigid_transform_3D(A, B):
 
     # special reflection case
     if linalg.det(R) < 0:
-        print("det(R) < R, reflection detected!, correcting for it ...\n");
+        # print("det(R) < R, reflection detected!, correcting for it ...\n");
         Vt[2,:] *= -1
         R = Vt.T * U.T
 
