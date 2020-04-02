@@ -15,7 +15,7 @@ NUM_FEATURES = 6
 sigma_val = 1.0         # 0.6 works for translation 100 and 300
 while True:
     img_type = 2
-    data_file = input("Select which type of data to view:\n\tT for Translation\n\tP for Pitch\n\tY for Yaw\n")
+    data_file = input("\n\nSelect which type of data to view:\n\tT for Translation\n\tP for Pitch\n\tY for Yaw\n")
     which_data = data_file.lower()
     which_data += "_data"
     frame_1 = 0
@@ -57,24 +57,12 @@ while True:
                          ('./data/Yaw/d4_35/', 'yaw_4')],
                  'v_data': [('./data/RV_Data2/', 'vid')]}
 
-    subP = 0
-    subY = 0
-    subT = 0
     if data_file == 'T' or data_file == 't':
         frame_text = "Translation Image"
-        # subT = frame_num * 0.1
-        # subP = 0
-        # subY = 0
     elif data_file == 'P' or data_file == 'p':
         frame_text = "Pitch Image"
-        # subP = frame_num * 3
-        # subY = 0
-        # subT = 0
     elif data_file == 'Y' or data_file == 'y':
         frame_text = "Yaw Image"
-        # subP = 0
-        # subY = frame_num * 3
-        # subT = 0
 
     data_set_1 = data.Dataset(data_dirs[which_data][frame_1])
     data_set_2 = data.Dataset(data_dirs[which_data][frame_2])
@@ -131,7 +119,7 @@ while True:
                 for points, points2 in match:  # {
                 # for points in match[:NUM_FEATURES]:  # {
                 # for points in match:  # {
-                    if points.distance > 0.6 * points2.distance:
+                    if points.distance > 0.58 * points2.distance:
                         continue
                     # get the x and y pixel locations the features from the matcher
                     # point_image1 = points.queryIdx
@@ -216,13 +204,13 @@ while True:
         print("x average (meters): ", np.abs(np.mean(all_x) * 1000))
         print("y average (meters): ", np.abs(np.mean(all_y) * 1000))
         print("z average (meters): ", np.abs(np.mean(all_z) * 1000))
-        print("x standard dev: ", np.std(all_x * 1000))
+        print("\nx standard dev: ", np.std(all_x * 1000))
         print("y standard dev: ", np.std(all_y * 1000))
         print("z standard dev: ", np.std(all_z * 1000))
     else:
-        print("pitch mean error (degrees): ", np.abs(subP - np.rad2deg(np.mean(all_pitch))))
         print("roll mean error (degrees): ", np.abs(np.rad2deg(np.mean(all_roll))))
-        print("yaw mean error (degrees): ", np.abs(subY - np.rad2deg(np.mean(all_yaw))))
+        print("pitch mean error (degrees): ", np.abs(np.rad2deg(np.mean(all_pitch))))
+        print("yaw mean error (degrees): ", np.abs(np.rad2deg(np.mean(all_yaw))))
+        print("\nroll standard dev: ", np.rad2deg(np.std(all_roll)))
         print("pitch standard dev: ", np.rad2deg(np.std(all_pitch)))
-        print("roll standard dev: ", np.rad2deg(np.std(all_roll)))
         print("yaw standard dev: ", np.rad2deg(np.std(all_yaw)))
