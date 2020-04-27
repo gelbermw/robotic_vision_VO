@@ -15,10 +15,11 @@ NUM_FEATURES = 6
 sigma_val = 1.0         # 0.6 works for translation 100 and 300
 while True:
     img_type = 2
-    data_file = input("\n\nSelect which type of data to view:\n\tT for Translation\n\tP for Pitch\n\tY for Yaw\n")
+    data_file = input("\n\nSelect which type of data to view:\n\tT for Translation\n\tP for Pitch\n\tY for Yaw\n\tA for Test1\n\tB for Test2\n")
     which_data = data_file.lower()
     which_data += "_data"
     frame_1 = 0
+    frame_1 = int(input("Select for set of data (0 for default): "))
     frame_2 = 0
     if img_type == 2:
         frame_2 = int(input("Select a number (2, 3, or 4) for what data to be compared: "))
@@ -55,6 +56,11 @@ while True:
                          ('./data/Yaw/d2_41/', 'yaw_2'),
                          ('./data/Yaw/d3_38/', 'yaw_3'),
                          ('./data/Yaw/d4_35/', 'yaw_4')],
+                 'a_data': [('./data/Test_Data1/pose1/', 'pose_1'),
+                            ('./data/Test_Data1/pose2/', 'pose_2')],
+                 'b_data': [('./data/Test_Data2/p1/', 'p_1'),
+                            ('./data/Test_Data2/p2/', 'p_2'),
+                            ('./data/Test_Data2/p3/', 'p_3')],
                  'v_data': [('./data/RV_Data2/', 'vid')]}
 
     if data_file == 'T' or data_file == 't':
@@ -63,6 +69,10 @@ while True:
         frame_text = "Pitch Image"
     elif data_file == 'Y' or data_file == 'y':
         frame_text = "Yaw Image"
+    elif data_file == 'A' or data_file == 'a':
+        frame_text = "Test 1 Image"
+    elif data_file == 'B' or data_file == 'b':
+        frame_text = "Test 2 Image"
 
     data_set_1 = data.Dataset(data_dirs[which_data][frame_1])
     data_set_2 = data.Dataset(data_dirs[which_data][frame_2])
@@ -200,17 +210,18 @@ while True:
             pass
 
     # after all images have been processed
-    if data_file == 'T' or data_file == 't':
-        print("x average (meters): ", np.abs(np.mean(all_x) * 1000))
-        print("y average (meters): ", np.abs(np.mean(all_y) * 1000))
-        print("z average (meters): ", np.abs(np.mean(all_z) * 1000))
-        print("\nx standard dev: ", np.std(all_x * 1000))
-        print("y standard dev: ", np.std(all_y * 1000))
-        print("z standard dev: ", np.std(all_z * 1000))
-    else:
-        print("roll mean error (degrees): ", np.abs(np.rad2deg(np.mean(all_roll))))
-        print("pitch mean error (degrees): ", np.abs(np.rad2deg(np.mean(all_pitch))))
-        print("yaw mean error (degrees): ", np.abs(np.rad2deg(np.mean(all_yaw))))
-        print("\nroll standard dev: ", np.rad2deg(np.std(all_roll)))
-        print("pitch standard dev: ", np.rad2deg(np.std(all_pitch)))
-        print("yaw standard dev: ", np.rad2deg(np.std(all_yaw)))
+    #if data_file == 'T' or data_file == 't' or data_file == 'B' or data_file == 'b':
+    if 1:
+        print("x average (mm): ", np.round(np.mean(all_x) * 1000, 3))   # abs removed -> np.round(np.abs(np.mean(all_x) * 1000), 3)
+        print("y average (mm): ", np.round(np.mean(all_y) * 1000, 3))
+        print("z average (mm): ", np.round(np.mean(all_z) * 1000, 3))
+        #print("\nx standard dev: ", np.round(np.std(all_x * 1000), 3))
+        #print("y standard dev: ", np.round(np.std(all_y * 1000), 3))
+        #print("z standard dev: ", np.round(np.std(all_z * 1000), 3))
+    #else:
+        print("\n\nroll mean (degrees): ", np.round(np.rad2deg(np.mean(all_roll)), 3))
+        print("pitch mean (degrees): ", np.round(np.rad2deg(np.mean(all_pitch)), 3))
+        print("yaw mean (degrees): ", np.round(np.rad2deg(np.mean(all_yaw)), 3))
+        #print("\nroll standard dev: ", np.round(np.rad2deg(np.std(all_roll)), 3))
+        #print("pitch standard dev: ", np.round(np.rad2deg(np.std(all_pitch)), 3))
+        #print("yaw standard dev: ", np.round(np.rad2deg(np.std(all_yaw)), 3))
