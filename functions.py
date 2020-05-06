@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import cv2 as cv
 import random
 import os
 import pickle
@@ -70,3 +71,44 @@ def rotationMatrixToEulerAngles(R):
         z = 0
 
     return np.array([x, y, z])
+
+
+def draw_delta(img, new, old, offset=(0, 0), color=(0, 1, 0), scale=5, thickness=1, double_box=False, fade_factor=0.5):
+    new = np.int32(np.array(new) * scale)
+    offset = np.array(offset)
+    faded_color = tuple(np.array(color) * fade_factor)
+
+    img = cv.rectangle(img,
+                       tuple(new), tuple(new + scale),
+                       color, thickness)
+
+    if old is not None:
+        old = np.int32((np.array(old) + offset) * scale)
+        img = cv.line(img,
+                      tuple(new + int(scale / 2)),
+                      tuple(old + int(scale / 2)),
+                      faded_color, thickness=thickness)
+
+        if double_box:
+            img = cv.rectangle(img,
+                               tuple(old), tuple(old + scale),
+                               color, thickness)
+
+    return img
+
+
+def render_keypoints(img, points0, points1, scale=5, offset=(0, 0), double_box=False):
+    img = cv.resize(img, (img.shape[1] * scale, img.shape[0] * scale), interpolation=cv.INTER_AREA)
+
+    img = np.float32(img/255)
+    if len(img.shape) == 2:
+        img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
+
+    # for feat in self.frames[-1].features:
+    #     draw_delta(img, feat, None, offset, color=(0, 0.5, 0.5), double_box=double_box)
+    if points0 is not None:
+        for point, p2 in zip(points0, points1):
+            draw_delta(img, np.array(point), np.array(p2), offset, color=(0, 1, 0), scale=scale, double_box=double_box)
+
+
+    return img

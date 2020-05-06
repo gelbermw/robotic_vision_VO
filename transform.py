@@ -8,6 +8,7 @@ from math import sqrt
 # R = 3x3 rotation matrix
 # t = 3x1 column vector
 
+
 def rigid_transform_3D(A, B):
     assert len(A) == len(B)
 

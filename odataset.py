@@ -27,9 +27,9 @@ def load_data(filename):
         values = np.array(values)
         values = np.reshape(values, (-1, dimensions[1]))
 
-        z = np.reshape(values[0:144], dimensions)
-        x = np.reshape(values[144:288], dimensions)
-        y = np.reshape(values[288:432], dimensions)
+        z = np.reshape(values[0:144], dimensions)       # z
+        x = np.reshape(values[144:288], dimensions)        #x
+        y = np.reshape(values[288:432], dimensions)         #y
         amp = np.reshape(values[432:576], dimensions)
         conf = np.reshape(values[576:720], dimensions)
         time = np.reshape(values[720], dimensions[1])
