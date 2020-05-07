@@ -90,7 +90,13 @@ class ThreeD(Model):
         :param point: data point to calculate error with
         :return: calculated error
         """
+        new = np.mat(point[1]).T
+        old = np.mat(point[0]).T
+
         # calc error using ||p2 - (R*p1+T)||^2
-        error = self._rotate.dot(point[0]) + self._translate
-        final_error = linalg.norm(point[1] - error)
-        return final_error**2
+
+        return linalg.norm(new - (self._rotate * old + self._translate)) ** 2
+        # # calc error using ||p2 - (R*p1+T)||^2
+        # error = self._rotate.dot(point[0]) + self._translate
+        # final_error = linalg.norm(point[1] - error)
+        # return final_error**2

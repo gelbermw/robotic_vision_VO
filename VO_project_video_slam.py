@@ -16,7 +16,7 @@ NUM_FEATURES = 6
 sigma_val = 1.0
 FIRST = True
 FIRST_IMAGE = True
-ransac_thresh = 0.01
+ransac_thresh = 0.0001
 x_val = []
 y_val = []
 z_val = []
@@ -41,10 +41,10 @@ def pose_change_a_to_b(frame_a, frame_b):
 
     try:
         first_img = frame_a.get_amplitude_image()  # adjust image sizes
-        first_img = np.float32(np.gradient(data.normalize_full(first_img), 2, axis=0, edge_order=2))
+        # first_img = np.float32(np.gradient(data.normalize_full(first_img), 2, axis=0, edge_order=2))
         first_img = np.uint8(filter_image(first_img) * 255)
         second_img = frame_b.get_amplitude_image()
-        second_img = np.float32(np.gradient(data.normalize_full(second_img), 2, axis=0, edge_order=2))
+        # second_img = np.float32(np.gradient(data.normalize_full(second_img), 2, axis=0, edge_order=2))
         second_img = np.uint8(filter_image(second_img) * 255)
 
         sift_img = cv2.xfeatures2d.SIFT_create(contrastThreshold=0.0015, edgeThreshold=10, nOctaveLayers=3, sigma=1.2)
@@ -135,7 +135,7 @@ def pose_change_a_to_b(frame_a, frame_b):
         tupled_features = [[tuple(x), tuple(y)] for x, y in zip(detected_feature_loc1, detected_feature_loc2)]
 
         # send to ransac calculation
-        param = RansacParams(samples=8, iterations=15, confidence=0.9, threshold=ransac_thresh)
+        param = RansacParams(samples=4, iterations=15, confidence=0.9, threshold=ransac_thresh)
         my_model = ThreeD()
         found_inliers = find_inliers(tupled_features, my_model, param)
         # print(found_inliers)
@@ -232,8 +232,10 @@ while True:
             estimates.insert(frame_count, gtsam.Pose3(gtsam.Rot3(prev_rot), gtsam.Point3(np.array(prev_trans).reshape(3))))
             if frame_count > 0:
                 factor = gtsam.BetweenFactorPose3(frame_count-1, frame_count, gtsam.Pose3(gtsam.Rot3(new_rotate), gtsam.Point3(np.array(new_translation).reshape(3))), odom_noise)
-                graph.add(factor)
+            else:
+                factor = gtsam.PriorFactorPose3(0, gtsam.Pose3(gtsam.Rot3(prev_rot), gtsam.Point3(np.array(prev_trans).reshape(3))), prior_model)
 
+            graph.add(factor)
             frame_count = frame_count + 1
 
             pry = calc.rotationMatrixToEulerAngles(new_rotate)
@@ -255,20 +257,42 @@ while True:
     # after all images have been processed
     plt.plot(x_val, y_val, label="Dead Reckoning x,y")
     plt.plot(x_val, z_val, label="Dead Reckoning x,z")
-    plt.plot(y_val, z_val, label="Dead Reckoning y,z")
+    plt.plot(z_val, y_val, label="Dead Reckoning y,z")
     plt.title('Dead Reckoning')
     plt.legend()
     plt.show()
+
+    # if frame_count > 500:
+    #     factor = gtsam.BetweenFactorPose3(frame_count-1, 0, gtsam.Pose3(), odom_noise)
+    #     graph.add(factor)
 
     gtparams = gtsam.GaussNewtonParams()
     optimizer = gtsam.GaussNewtonOptimizer(graph, estimates, gtparams)
     result = optimizer.optimize()
     result_poses = gtsam.allPose3s(result)
 
+    gtsam_x_val = []
+    gtsam_y_val = []
+    gtsam_z_val = []
+    r_off = np.mat([[1., 0., 0.],
+             [0., 0.91363181, - 0.40654264],
+             [0., 0.40654264, 0.91363181]])
     from mpl_toolkits.mplot3d import Axes3D
-    for k in range(result_poses.size):
+    for k in range(result_poses.size()):
         plot.plot_pose3(1, result_poses.atPose3(k))
+        p = result_poses.atPose3(k)
+        t = p.translation()
+        # r = p.roation().matrix()
+        # print(t)
+        t = np.array(np.mat([t.x(), t.y(), t.z()]) * r_off).reshape(3)
+        gtsam_x_val.append(t[0])
+        gtsam_y_val.append(t[1])
+        gtsam_z_val.append(t[2])
 
+    plt.show()
+    plt.plot(gtsam_x_val, gtsam_y_val)
+    plt.plot(gtsam_x_val, gtsam_z_val)
+    plt.plot(gtsam_z_val, gtsam_y_val)
     plt.show()
 
 

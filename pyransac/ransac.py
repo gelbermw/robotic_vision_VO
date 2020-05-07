@@ -61,13 +61,14 @@ def find_inliers(points: List, model: Model, params: RansacParams):
             # print("Testing inlier calculation: ", inliers)
             confidence = 1 - params.confidence
             ratio = len(supporters) / len(points)
-            if ratio == 1:
+            if ratio > 0.75:
                 break
             # print("ratio is: ", ratio)
             iterations = log(confidence) / log(1 - ratio ** params.samples)
 
         i += 1
     # print("Testing inlier calculation: ", inliers)
+    model.make_model(inliers)
     return inliers
 
 
