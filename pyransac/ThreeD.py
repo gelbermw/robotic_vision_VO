@@ -72,7 +72,7 @@ class ThreeD(Model):
         new_points1 = np.asmatrix(np.transpose(new_points1))
         new_points2 = np.asmatrix(np.transpose(new_points2))
 
-        if len(points) != 4:
+        if len(points) < 4:
             raise ValueError(f'Need 4 points to make pose estimate, not {len(points)}')
 
         # try:
@@ -91,10 +91,6 @@ class ThreeD(Model):
         :return: calculated error
         """
         # calc error using ||p2 - (R*p1+T)||^2
-        # print("In calc error, this is the point: ", point[1])        # debugging
-        # print(self._rotate.dot(point[0]))
         error = self._rotate.dot(point[0]) + self._translate
-        # print("R*p1+T = ", error)
         final_error = linalg.norm(point[1] - error)
-        # print("before squaring", final_error)
         return final_error**2

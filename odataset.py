@@ -13,6 +13,13 @@ def normalize(data, max_value=1, min_value=0):
     return (data - mn) / (mx - mn) * (max_value - min_value) + min_value
 
 
+def normalize_full(data, max_value=1, min_value=0):
+    # data = np.abs(data)
+    mx = np.max(data)
+    mn = np.min(data)
+    return (data - mn) / (mx - mn) * (max_value - min_value) + min_value
+
+
 def load_data(filename):
     dimensions = (144, 176)
     with open(filename, 'r') as f:
