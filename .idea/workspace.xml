@@ -2,17 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="aa452611-e7ff-40c0-a652-0a3d9c9c58f2" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/pyransac/ThreeD.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pyransac/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pyransac/base.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pyransac/ransac.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/robotic_vision.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/robotic_vision.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/VO_project_video_slam.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/VO_project_fixing.py" beforeDir="false" afterPath="$PROJECT_DIR$/VO_project_fixing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/odataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/odataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transform.py" beforeDir="false" afterPath="$PROJECT_DIR$/transform.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyransac/ransac.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyransac/ransac.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -159,25 +153,6 @@
     <state x="177" y="165" width="1653" height="855" key="dock-window-1/67.27.1853.1053@67.27.1853.1053" timestamp="1585767795556" />
   </component>
   <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VO_project_fixing.py</url>
-          <line>222</line>
-          <option name="timeStamp" value="9" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VO_project_fixing.py</url>
-          <line>127</line>
-          <option name="timeStamp" value="14" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/VO_project_fixing.py</url>
-          <line>227</line>
-          <option name="timeStamp" value="16" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
         <watch expression="__py_debug_temp_var_1311263052" />

@@ -47,7 +47,7 @@ def find_inliers(points: List, model: Model, params: RansacParams):
     max_support = 0
     iterations = params.iterations
     i = 0
-    print("Num points: ", len(points))
+    # print("Num points: ", len(points))
     # print("List contents in find inliers:\n", points) # debugging
     while i < iterations:
         sample_points = random.choices(points, k=params.samples)

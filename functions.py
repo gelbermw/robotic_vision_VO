@@ -55,7 +55,6 @@ def p_r_y(r):
 
 
 def rotationMatrixToEulerAngles(R):
-    # assert (isRotationMatrix(R))
 
     sy = math.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
 
@@ -109,6 +108,5 @@ def render_keypoints(img, points0, points1, scale=5, offset=(0, 0), double_box=F
     if points0 is not None:
         for point, p2 in zip(points0, points1):
             draw_delta(img, np.array(point), np.array(p2), offset, color=(0, 1, 0), scale=scale, double_box=double_box)
-
 
     return img
