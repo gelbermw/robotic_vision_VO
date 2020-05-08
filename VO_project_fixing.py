@@ -12,6 +12,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 sigma_val = 1.3         # 0.6 works for translation 100 and 300
 ransac_thresh = 0.0
 
+
 def pose_change_a_to_b(frame_a, frame_b):
 
     first_img = frame_a.get_amplitude_image()  # adjust image sizes

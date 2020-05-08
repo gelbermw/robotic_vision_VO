@@ -12,7 +12,6 @@ from gtsam.utils import plot
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-NUM_FEATURES = 6
 sigma_val = 1.0
 FIRST = True
 FIRST_IMAGE = True
@@ -75,7 +74,6 @@ def pose_change_a_to_b(frame_a, frame_b):
                 (x1, y1) = kp1[points.queryIdx].pt
                 (x2, y2) = kp2[points.trainIdx].pt
 
-                # print(np.float32([kp1[points.queryIdx].pt]))
                 # point pairs for each image, indices match pairs
                 # array to hold all (x,y) pixel loc of features
                 img1_points = np.append(img1_points, [x1, y1])
@@ -155,12 +153,12 @@ def pose_change_a_to_b(frame_a, frame_b):
 prior_model = gtsam.noiseModel_Diagonal.Sigmas(np.array([0.02, 0.02, 0.02, 0.1, 0.1, 0.1]))
 odom_noise = gtsam.noiseModel_Diagonal.Sigmas(np.array([0.1, 0.1, 0.1, 0.2, 0.2, 0.2]))
 estimates = gtsam.Values()
-# estimates.insert(gtsam)
 graph = gtsam.NonlinearFactorGraph()
 
 while True:
     data_file = input("\n\nSelect data:\n\tV for Video\noption: ")
-    which_data = data_file.lower()
+    data_file = data_file.lower()
+    which_data = data_file
     which_data += "_data"
     loc_1 = 0
 
